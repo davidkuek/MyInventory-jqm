@@ -1,0 +1,109 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css"/>
+
+    
+</head>
+
+<body>
+    <div data-role="page" id="main-page" data-title="Main_page" >
+
+    <div data-role="header" data-theme="b"><a href="#add-item-page" data-icon="plus" class="ui-btn-right" data-rel="dialog">Add</a>
+        <h1>My Inventory</h1>
+    </div>
+    <div role="main" class="ui-content">
+    <ul data-role="listview" data-filter="true" data-filter-reveal="true" data-filter-placeholder="Search items..."></ul>
+
+<ul data-role="listview" data-inset="true" id="item-list-view">
+</ul>
+    </div>
+    <div data-role="footer" data-position="fixed" data-theme="b">
+        <h3>© MobileOne Technology</h3>
+    </div>
+</div>
+
+
+
+<!-- Add item page -->
+
+    <div data-role="page" id="add-item-page" >
+
+    <div data-role="header" data-theme="b">
+        <h1>Add item</h1>
+    </div>
+    <div role="main" class="ui-content">
+
+<form>
+    <div data-role="fieldcontain">
+         <label for="item-name">Name:</label>
+         <input data-clear-btn="true" name="item-name" id="item-name" value="" type="text">
+    </div>
+    <div data-role="fieldcontain">
+         <label for="item-qty">Quantity left:</label>
+         <input data-clear-btn="true" name="item-qty" id="item-qty" value="" type="number">
+
+    <br>
+    <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+    <select name="select-native-15" id="select-native-15">
+        <option value="1">Pack</option>
+        <option value="2">Bottle</option>
+        <option value="3">Piece</option>
+    </select>
+</fieldset>
+</div>
+
+    <div data-role="fieldcontain">
+        <label for="item-remark">Remark:</label>
+        <textarea cols="40" rows="8" name="item-remark" id="item-remark" placeholder="Note down some stuff..."></textarea>
+    </div>
+<div data-role="fieldcontain">
+    <label for="item-remark">Thumbnail:</label>
+<a href="#item-image-dialogue" data-rel="dialog" ><img id="item-image" style=" padding: 5px; width: 100px;"></a>
+<a href="#take-photo-dialogue" data-role="button" data-mini="true" data-inline="true" data-icon="edit" data-rel="dialog">Edit</a>
+</div>
+</form>
+
+
+    
+<a href="#" data-role="button" data-theme="b" id="item-add-done">Done</a>
+    </div>
+
+    </div>
+
+
+
+    <!-- Photo options dialogue -->
+
+<div data-role="page" data-title="Main_page" id="take-photo-dialogue" data-overlay-theme="c">
+
+    <div data-role="header" data-theme="b">
+        <h1>Choose option</h1>
+    </div>
+    <div role="main" class="ui-content">
+        <a href="#" data-role="button" id="choose-image">Choose image</a>
+        <a href="#" data-role="button" id="take-photo">Take photo</a>
+    </div>
+</div>
+
+<!-- item image dialgue -->
+<div data-role="page" data-title="Main_page" id="item-image-dialogue" data-overlay-theme="c">
+
+    <div data-role="header">
+        <h1>Path</h1>
+    </div>
+    <div role="main" class="ui-content">
+        <img style="width: 100%" id="item-large-image">
+    </div>
+</div>
+
+
+
+</body>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/jquery.mobile-1.4.5.min.js"></script>
+</html>
