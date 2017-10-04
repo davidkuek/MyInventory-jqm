@@ -74,6 +74,50 @@
     </div>
 
 
+<!-- Edit list page -->
+    <div data-role="page" id="edit-item-page" >
+
+    <div data-role="header" data-theme="b">
+        <h1>Edit item</h1>
+    </div>
+    <div role="main" class="ui-content">
+
+<form>
+    <div data-role="fieldcontain">
+         <label for="item-name">Name:</label>
+         <input data-clear-btn="true" name="item-name" id="edit-item-name" value="" type="text">
+    </div>
+    <div data-role="fieldcontain">
+         <label for="item-qty">Quantity left:</label>
+         <input data-clear-btn="true" name="item-qty" id="edit-item-qty" value="" type="number">
+
+    <br>
+    <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+    <select name="select-native-15" id="edit-select-native-15">
+        <option value="1">Pack</option>
+        <option value="2">Bottle</option>
+        <option value="3">Piece</option>
+    </select>
+</fieldset>
+</div>
+
+    <div data-role="fieldcontain">
+        <label for="item-remark">Remark:</label>
+        <textarea cols="40" rows="8" name="item-remark" id="edit-item-remark" placeholder="Note down some stuff..."></textarea>
+    </div>
+<div data-role="fieldcontain">
+    <label for="item-remark">Thumbnail:</label>
+<a href="#item-image-dialogue" data-rel="dialog" ><img id="edit-item-image" style=" padding: 5px; width: 100px;"></a>
+<a href="#take-photo-dialogue" data-role="button" data-mini="true" data-inline="true" data-icon="edit" data-rel="dialog">Edit</a>
+</div>
+</form>
+<a href="#" data-role="button" data-theme="b" id="item-edit-update">Update</a>
+<a href="#" data-role="button" data-theme="b" id="item-edit-delete">Delete</a>
+    </div>
+
+    </div>
+
+
 
     <!-- Photo options dialogue -->
 

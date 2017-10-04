@@ -135,7 +135,7 @@ var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
             function(tx,result){
                 if (result.rows.length > 0) {
                     for (var i = 0; i < result.rows.length; i++) {
-                        $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child\"><a href=\"#edit-item-page\" class=\"ui-btn ui-btn-icon-right ui-icon-carat-r\"><img src=\"" + 
+                        $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child\"><a href=\"#edit-item-page\" data-rel=\"dialog\" class=\"ui-btn ui-btn-icon-right ui-icon-carat-r\"><img src=\"" + 
                             result.rows.item(i).image + "\" style=\"padding:5%\"><h2>" + 
                             result.rows.item(i).name + "</h2><p>" + 
                             result.rows.item(i).quantity + " " +
@@ -144,8 +144,6 @@ var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
                     }
                     
                     
-                    
-                
                 }
                 else{
                     console.log('No data on item list');
@@ -233,7 +231,7 @@ function validateForm(){
         alert('Please provide remaining item quantity.');
     }
     else if ($('#item-image').attr('src') == undefined || $('#item-image').attr('src') == "") {
-        alert('Please prove item image.')
+        alert('Please provide item image.')
     }
 
     else{
@@ -248,4 +246,9 @@ $('#item-name').val("")
 $('#item-qty').val("");
 $('#item-remark').val("");
 $('#item-image').attr('src',"");
+}
+
+
+function itemDetails(){
+    console.log('item detail');
 }
