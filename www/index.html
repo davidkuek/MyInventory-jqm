@@ -11,13 +11,13 @@
 <body>
     <div data-role="page" id="main-page" data-title="Main_page" >
 
-    <div data-role="header" data-theme="b"><a href="#add-item-page" data-icon="plus" class="ui-btn-right" data-rel="dialog">Add</a>
+    <div data-role="header" data-theme="b"><a href="#" class="ui-btn ui-btn-left ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext" id="refresh-button">Refresh</a><a href="#add-item-page" data-icon="plus" class="ui-btn-right" data-rel="dialog">Add</a>
         <h1>My Inventory</h1>
     </div>
     <div role="main" class="ui-content">
     <ul data-role="listview" data-filter="true" data-filter-reveal="true" data-filter-placeholder="Search items..."></ul>
 
-<ul data-role="listview" data-inset="true" id="item-list-view">
+<ul data-role="listview" data-inset="true" class="item-list-view" id="item-list-view">
 </ul>
     </div>
     <div data-role="footer" data-position="fixed" data-theme="b">

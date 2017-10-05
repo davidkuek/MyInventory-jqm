@@ -1,12 +1,15 @@
 $( document ).on( "mobileinit", function() {
  
+
 pageOnLoad();
-displayUom(); // display UOM result, prevent adding data repeatitively
+
 
 $('#item-add-done').click(validateForm);
 $('#take-photo').click(openCamera);
 $('#item-image').click(enlargePicture);
+$('#edit-item-image').click(enlargePicture);
 $('#choose-image').click(openFilePicker);
+$('#refresh-button').click(refresh);
 
 
 });
@@ -18,9 +21,10 @@ var dbDisplayName = 'Test DB';
 var dbSize = 2*1024*1024;
 
 function pageOnLoad(){
-empty('#item-list-view');
 fnDbInit();
-displayItemList();
+empty('#item-list-view');
+resetAddItemForm();
+displayItemList();  
 }
 
 /* function to clear content */
@@ -29,7 +33,13 @@ function empty(selector){
         $(selector).empty();
 }
 
+function refresh(){
+    location.reload(true);
+}
 
+function stopRefreshPage(){
+    clearTimeout(refresh);
+}
 
 /* new large window for picture thumnail,thanks to stackoverflow code */
 function enlargePicture(){
@@ -50,44 +60,43 @@ function fnDbInit() {
   if (window.openDatabase) {
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function(tx) 
-        {tx.executeSql("CREATE TABLE IF NOT EXISTS ITEM_LIST(name, quantity, uom, remark, image)")});
+        {tx.executeSql("CREATE TABLE IF NOT EXISTS ITEM_LIST(id integer primary key autoincrement, name, quantity, uom, remark, image)")});
     db.transaction(function(tx) 
-        {tx.executeSql("CREATE TABLE IF NOT EXISTS UOM(id unique, desc)")});
+        {tx.executeSql("CREATE TABLE IF NOT EXISTS UOM(id integer primary key autoincrement, desc)")});
   }
   else{
     console.log('error');
   }
+  
 
 }
 
 
 /* add item list */
 function addItem() {
-
 var new_name = $('#item-name').val().toLowerCase();
 var new_quantity = $('#item-qty').val();
 var new_uom = parseInt($('#select-native-15 :selected').val()); //convert to number
 var new_remark = $('#item-remark').val();
 var new_image = $('#item-image').attr('src');
 var add_item_query = 'INSERT INTO ITEM_LIST(name, quantity, uom, remark, image) VALUES (?,?,?,?,?)';
-
   db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
   db.transaction( function(tx) {
     tx.executeSql(add_item_query,[new_name, new_quantity, new_uom, new_remark, new_image],
         function(tx,result){
+            
             alert('Item saved!');
             console.log('item saved!');
-            $('#add-item-page').dialog( "close" );
-            resetAddItemForm();
             pageOnLoad();
-
+            $('#add-item-page').dialog( "close" ); 
+            
         });
 
   },
   function(err){
     console.log(err);
   });   
-    
+  displayUom(); // display UOM result, prevent adding data repeatitively
 }
 
 
@@ -114,45 +123,50 @@ db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
 db.transaction(function(tx){
     tx.executeSql('SELECT * FROM UOM',[],
         function(tx,result){
-            if (result.rows.length == 0) {
+            if (result.rows.length != 0) {
+                return;
+            }
+            else{
                 addUom();
             }
 
         },
         function(err){
-            console.log('displaySQL error ' + err);
+            console.log('display UOM error ' + err);
         });
 });
 }
 
 /* display item on main page */
 function displayItemList(){
-var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.QUANTITY, ITEM_LIST.IMAGE, UOM.DESC FROM ITEM_LIST ";
+var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.quantity,ITEM_LIST.ID, ITEM_LIST.IMAGE, UOM.DESC FROM ITEM_LIST ";
 var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function (tx){
         tx.executeSql(query1 + query2,[],
             function(tx,result){
-                if (result.rows.length > 0) {
+                if (result.rows.length < 0) {
+                    
+                    console.log('No data on item list.');
+                }
+                else{
                     for (var i = 0; i < result.rows.length; i++) {
-                        $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child\"><a href=\"#edit-item-page\" data-rel=\"dialog\" class=\"ui-btn ui-btn-icon-right ui-icon-carat-r\"><img src=\"" + 
-                            result.rows.item(i).image + "\" style=\"padding:5%\"><h2>" + 
+                        var item_id = result.rows.item(i).id;
+                        $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
+                            item_id + ")\"><a class=\"ui-btn ui-btn-icon-right ui-icon-carat-r item-list\"><img src=\"" + 
+                            result.rows.item(i).image + "\" style=\"margin:5px\"><h2>" + 
                             result.rows.item(i).name + "</h2><p>" + 
                             result.rows.item(i).quantity + " " +
                             result.rows.item(i).desc + "</p></a></li>");
-
                     }
                     
-                    
-                }
-                else{
-                    console.log('No data on item list');
                 }
             },
             function(err){
                 console.log('display item list error ' + err);
             });
     });
+
 }
 
 
@@ -250,5 +264,76 @@ $('#item-image').attr('src',"");
 
 
 function itemDetails(){
-    console.log('item detail');
+    var query = "SELECT * FROM ITEM_LIST";
+    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
+    db.transaction(function (tx){
+        tx.executeSql(query,[],
+            function(tx,result){
+                if (result.rows.length > 0) {
+
+                    // for (var i = 0; i < result.rows.length; i++) {
+                        
+                    // }
+                    
+                    
+                }
+                else{
+                    console.log('No data on item list');
+                }
+            },
+            function(err){
+                console.log('item details sql error ' + err);
+            });
+    });
+
+}
+
+
+function loadItemDetails(item_id){
+
+var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.QUANTITY, ITEM_LIST.ID, ITEM_LIST.IMAGE, ITEM_LIST.REMARK, ITEM_LIST.UOM FROM ITEM_LIST ";
+// var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
+    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
+    db.transaction(function (tx){
+        tx.executeSql(query1,[],
+            function(tx,result){
+                if (result.rows.length < 0) {
+                    
+                    console.log('No data on item list.');
+                }
+                else{
+                    
+                    for (var i = 0; i < result.rows.length; i++) {
+                        
+                        if(item_id == result.rows.item(i).id){
+                            var name = result.rows.item(i).name
+                            var quantity = result.rows.item(i).quantity;
+                            var uom = result.rows.item(i).uom;
+                            var uomString = uom.toString(); // convert uom result number to string format
+                            var remark = result.rows.item(i).remark;
+                            var image = result.rows.item(i).image;
+
+                            $('#edit-item-name').val(name);
+                            $('#edit-item-qty').val(quantity);
+                            $('#select-native-15').val(uomString);
+                            $('#edit-item-remark').val(remark);
+                            $('#edit-item-image').attr("src",image);
+
+                        }
+                        
+                        
+                    }
+               
+                $.mobile.changePage('#edit-item-page', {transition: 'pop', role: 'dialog'});
+
+                }
+
+            },
+            function(err){
+                console.log('display item list error ' + err);
+            });
+    });
+
+
+
 }
