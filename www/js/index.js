@@ -10,10 +10,18 @@ $('#item-image').click(enlargePicture);
 $('#edit-item-image').click(enlargePicture);
 $('#choose-image').click(openFilePicker);
 $('#refresh-button').click(refresh);
+$('#edit-item-name,#edit-item-qty,#edit-select-native-15,#edit-item-remark').on('input',enableUpdate);
+$('#edit-item-image').on('load', checkImageChange);
+$("#update-item-button").click(updateList);
+$("#delete-item-button").click(deleteList);
+
+
 
 
 });
 
+
+var item = {};
 var db = null;
 var dbName = 'itemDB';
 var dbVersion = '1.0';
@@ -25,6 +33,14 @@ fnDbInit();
 empty('#item-list-view');
 resetAddItemForm();
 displayItemList();  
+
+}
+
+/* check image change provided edit image dialog is pop up and enable update button */
+function checkImageChange(){
+    if ($('#edit-item-page').closest('.ui-dialog').is(':visible')) {
+        enableUpdate();
+    }
 }
 
 /* function to clear content */
@@ -33,13 +49,17 @@ function empty(selector){
         $(selector).empty();
 }
 
+/* refresh page event */
 function refresh(){
     location.reload(true);
+    console.log('refresh');
 }
 
-function stopRefreshPage(){
-    clearTimeout(refresh);
+/* enable update button */
+function enableUpdate(){
+    $('#update-item-button').removeClass('ui-state-disabled');
 }
+
 
 /* new large window for picture thumnail,thanks to stackoverflow code */
 function enlargePicture(){
@@ -54,7 +74,7 @@ function enlargePicture(){
 }
 
 
-
+/* initialize database table */
 function fnDbInit() {
 
   if (window.openDatabase) {
@@ -85,10 +105,12 @@ var add_item_query = 'INSERT INTO ITEM_LIST(name, quantity, uom, remark, image) 
     tx.executeSql(add_item_query,[new_name, new_quantity, new_uom, new_remark, new_image],
         function(tx,result){
             
+            item.new_image = new_image;
             alert('Item saved!');
             console.log('item saved!');
-            pageOnLoad();
             $('#add-item-page').dialog( "close" ); 
+            pageOnLoad();
+            moveFile();
             
         });
 
@@ -100,7 +122,7 @@ var add_item_query = 'INSERT INTO ITEM_LIST(name, quantity, uom, remark, image) 
 }
 
 
-
+/* add standard unit of measure */
 function addUom(){
 
 db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
@@ -139,17 +161,20 @@ db.transaction(function(tx){
 
 /* display item on main page */
 function displayItemList(){
+
+    
 var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.quantity,ITEM_LIST.ID, ITEM_LIST.IMAGE, UOM.DESC FROM ITEM_LIST ";
 var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function (tx){
         tx.executeSql(query1 + query2,[],
             function(tx,result){
-                if (result.rows.length < 0) {
+                if (result.rows.length == 0) {
                     
                     console.log('No data on item list.');
+                    
                 }
-                else{
+                else{   
                     for (var i = 0; i < result.rows.length; i++) {
                         var item_id = result.rows.item(i).id;
                         $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
@@ -166,7 +191,6 @@ var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
                 console.log('display item list error ' + err);
             });
     });
-
 }
 
 
@@ -212,7 +236,7 @@ function openCamera(selection) {
 
 function openFilePicker(selection) {
 
-    var srcType = Camera.PictureSourceType.SAVEDPHOTOALBUM;
+    var srcType = Camera.PictureSourceType.PHOTOLIBRARY;
     var options = setOptions(srcType);
 
     navigator.camera.getPicture(function cameraSuccess(imageUri) {
@@ -230,8 +254,15 @@ function openFilePicker(selection) {
 
 function displayImage(imgUri) {
 
-    var elem = document.getElementById('item-image');
-    elem.src = imgUri;
+//display image depends on which dialog image is appeared..
+
+    if ($('#add-item-page').closest('.ui-dialog').is(':visible')) {
+        $('#item-image').attr('src',imgUri);
+    }
+    else if($('#edit-item-page').closest('.ui-dialog').is(':visible')) {
+        $('#edit-item-image').attr('src',imgUri);
+    }
+    
 }
 
 
@@ -252,6 +283,7 @@ function validateForm(){
         addItem();
     }
 
+
 }
 
 /* reset add item input field */
@@ -263,36 +295,10 @@ $('#item-image').attr('src',"");
 }
 
 
-function itemDetails(){
-    var query = "SELECT * FROM ITEM_LIST";
-    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
-    db.transaction(function (tx){
-        tx.executeSql(query,[],
-            function(tx,result){
-                if (result.rows.length > 0) {
-
-                    // for (var i = 0; i < result.rows.length; i++) {
-                        
-                    // }
-                    
-                    
-                }
-                else{
-                    console.log('No data on item list');
-                }
-            },
-            function(err){
-                console.log('item details sql error ' + err);
-            });
-    });
-
-}
-
-
+/* load item details from list view to input form */
 function loadItemDetails(item_id){
 
 var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.QUANTITY, ITEM_LIST.ID, ITEM_LIST.IMAGE, ITEM_LIST.REMARK, ITEM_LIST.UOM FROM ITEM_LIST ";
-// var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function (tx){
         tx.executeSql(query1,[],
@@ -312,28 +318,154 @@ var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.QUANTITY, ITEM_LIST.ID, ITEM_LIST
                             var uomString = uom.toString(); // convert uom result number to string format
                             var remark = result.rows.item(i).remark;
                             var image = result.rows.item(i).image;
+            
 
                             $('#edit-item-name').val(name);
                             $('#edit-item-qty').val(quantity);
-                            $('#select-native-15').val(uomString);
+                            $('#edit-select-native-15').val(uomString);
                             $('#edit-item-remark').val(remark);
                             $('#edit-item-image').attr("src",image);
 
+                            item.id = item_id;
+                            item.imageUrl =  image;
                         }
                         
                         
                     }
                
                 $.mobile.changePage('#edit-item-page', {transition: 'pop', role: 'dialog'});
-
+                
                 }
 
             },
             function(err){
-                console.log('display item list error ' + err);
+                console.log('load item list error ' + err);
             });
     });
 
 
+
+}
+
+/* update existing list item */
+function updateList(){
+    
+    var new_name = $('#edit-item-name').val().toLowerCase();
+    var new_quantity = $('#edit-item-qty').val();
+    var new_uomString = $('#edit-select-native-15 :selected').val();
+    var new_uomNumber = parseInt(new_uomString); //convert to number
+    var new_remark = $('#edit-item-remark').val();
+    var new_image = $('#edit-item-image').attr('src');
+    var query1 = "UPDATE ITEM_LIST ";
+    var query2 = "SET NAME = ?, QUANTITY = ?, UOM = ?, REMARK = ?, IMAGE = ?";
+    var query3 = " WHERE ID = ?";
+
+    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
+    db.transaction(function (tx){
+        tx.executeSql(query1 + query2 + query3,[new_name,new_quantity,new_uomNumber,new_remark,new_image,item.id],
+            function(tx,result){
+                    
+                    if (item.imageUrl !== new_image) {
+                        deleteOldImageCache();
+                        
+                    
+                    }
+                        
+                    $('#edit-item-name').val(new_name);
+                    $('#edit-item-qty').val(new_quantity);
+                    $('#edit-select-native-15').val(new_uomString);
+                    $('#edit-item-remark').val(new_remark);
+                    $('#edit-item-image').attr("src",new_image);
+
+                    
+                    
+                    $('#edit-item-page').dialog( "close" ); 
+                    pageOnLoad();
+                    alert("Item updated!");
+                    console.log('item ' + item.id + ' updated.');
+
+
+            },
+            function(err){
+                console.log('update item list error ' + err);
+            });
+    });
+ }
+
+/* delete list item */
+function deleteList(){
+    var query1 = "DELETE FROM ITEM_LIST ";
+    var query2 = "WHERE ID = ?";
+
+    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
+    db.transaction(function (tx){
+        tx.executeSql(query1 + query2,[item.id],
+            function(tx,result){
+                    
+                    deleteOldImageCache();
+                    $('#edit-item-page').dialog( "close" ); 
+                    pageOnLoad();
+                    alert('item deleted.');
+                    console.log('item ' + item.id +  ' deleted.');
+
+            },
+            function(err){
+                console.log('delete item list error ' + err);
+            });
+    });
+}
+
+
+
+function deleteOldImageCache(){
+
+var path = item.imageUrl;
+var fileName =  path.split("/").pop("cache"); //getting file name
+var standardPath = cordova.file.externalCacheDirectory;
+
+window.resolveLocalFileSystemURL(standardPath, function(dir) {
+  dir.getFile(fileName, {create:false}, function(fileEntry) {
+              fileEntry.remove(function(){
+                console.log('file deleted');
+                  
+              },function(error){
+                console.log('error of' + error.code);    
+                  
+              },function(){
+                console.log('no file exist');
+                 
+              });
+  });
+});
+
+}
+
+
+
+/* Move files after camera success */
+function moveFile() {
+
+    var imagePath = item.new_image;
+    window.resolveLocalFileSystemURL(imagePath,function(fileEntry){
+                newFileUri  = cordova.file.dataDirectory;
+                oldFileUri  = imagePath;
+                newFileName = imagePath.split("/").pop("cache");
+                
+                window.resolveLocalFileSystemURL(newFileUri,
+                        function(dirEntry) {
+                            // move the file to a new directory and rename it
+                            fileEntry.moveTo(dirEntry, newFileName, successCallback, errorCallback);
+                        },
+                        errorCallback);
+          },
+          errorCallback);
+
+  function successCallback(entry) {
+    console.log("New Path: " + entry.fullPath);
+  }
+
+  function errorCallback(error) {
+    console.log("Error:" + error.code);
+  }   
 
 }

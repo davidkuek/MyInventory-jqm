@@ -15,9 +15,12 @@
         <h1>My Inventory</h1>
     </div>
     <div role="main" class="ui-content">
-    <ul data-role="listview" data-filter="true" data-filter-reveal="true" data-filter-placeholder="Search items..."></ul>
+    <ul data-role="listview" data-filter="true" data-filter-placeholder="Search items..." data-inset="true" class="item-list-view" id="item-list-view">
+        
+    
 
-<ul data-role="listview" data-inset="true" class="item-list-view" id="item-list-view">
+<!-- <ul data-role="listview" data-inset="true" class="item-list-view" id="item-list-view">
+</ul> -->
 </ul>
     </div>
     <div data-role="footer" data-position="fixed" data-theme="b">
@@ -57,7 +60,7 @@
 
     <div data-role="fieldcontain">
         <label for="item-remark">Remark:</label>
-        <textarea cols="40" rows="8" name="item-remark" id="item-remark" placeholder="Note down some stuff..."></textarea>
+        <textarea data-clear-btn="true" cols="40" rows="8" name="item-remark" id="item-remark" placeholder="Note down some stuff..."></textarea>
     </div>
 <div data-role="fieldcontain">
     <label for="item-remark">Thumbnail:</label>
@@ -103,7 +106,7 @@
 
     <div data-role="fieldcontain">
         <label for="item-remark">Remark:</label>
-        <textarea cols="40" rows="8" name="item-remark" id="edit-item-remark" placeholder="Note down some stuff..."></textarea>
+        <textarea data-clear-btn="true" cols="40" rows="8" name="item-remark" id="edit-item-remark" placeholder="Note down some stuff..."></textarea>
     </div>
 <div data-role="fieldcontain">
     <label for="item-remark">Thumbnail:</label>
@@ -111,8 +114,8 @@
 <a href="#take-photo-dialogue" data-role="button" data-mini="true" data-inline="true" data-icon="edit" data-rel="dialog">Edit</a>
 </div>
 </form>
-<a href="#" data-role="button" data-theme="b" id="item-edit-update">Update</a>
-<a href="#" data-role="button" data-theme="b" id="item-edit-delete">Delete</a>
+<a href="#" class="ui-btn ui-state-disabled" data-role="button" data-theme="b" id="update-item-button">Update</a>
+<a href="#" data-role="button" data-theme="b" id="delete-item-button">Delete</a>
     </div>
 
     </div>
