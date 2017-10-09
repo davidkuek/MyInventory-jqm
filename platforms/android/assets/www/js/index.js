@@ -105,12 +105,11 @@ var add_item_query = 'INSERT INTO ITEM_LIST(name, quantity, uom, remark, image) 
     tx.executeSql(add_item_query,[new_name, new_quantity, new_uom, new_remark, new_image],
         function(tx,result){
             
-            item.new_image = new_image;
             alert('Item saved!');
             console.log('item saved!');
             $('#add-item-page').dialog( "close" ); 
             pageOnLoad();
-            moveFile();
+            copyFile(new_image);
             
         });
 
@@ -222,8 +221,8 @@ function openCamera(selection) {
     navigator.camera.getPicture(function cameraSuccess(imageUri) {
 
         displayImage(imageUri);
+        item.imageUri = imageUri;
         
-
     }, function cameraError(error) {
         console.log('camera '+error);
 
@@ -252,15 +251,15 @@ function openFilePicker(selection) {
 }
 
 
-function displayImage(imgUri) {
-
 //display image depends on which dialog image is appeared..
+function displayImage(imageUri) {
+
 
     if ($('#add-item-page').closest('.ui-dialog').is(':visible')) {
-        $('#item-image').attr('src',imgUri);
+        $('#item-image').attr('src',imageUri);
     }
     else if($('#edit-item-page').closest('.ui-dialog').is(':visible')) {
-        $('#edit-item-image').attr('src',imgUri);
+        $('#edit-item-image').attr('src',imageUri);
     }
     
 }
@@ -288,7 +287,7 @@ function validateForm(){
 
 /* reset add item input field */
 function resetAddItemForm(){
-$('#item-name').val("")
+$('#item-name').val("");
 $('#item-qty').val("");
 $('#item-remark').val("");
 $('#item-image').attr('src',"");
@@ -327,7 +326,8 @@ var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.QUANTITY, ITEM_LIST.ID, ITEM_LIST
                             $('#edit-item-image').attr("src",image);
 
                             item.id = item_id;
-                            item.imageUrl =  image;
+                            item.imageCache = image;
+                            
                         }
                         
                         
@@ -365,10 +365,11 @@ function updateList(){
         tx.executeSql(query1 + query2 + query3,[new_name,new_quantity,new_uomNumber,new_remark,new_image,item.id],
             function(tx,result){
                     
-                    if (item.imageUrl !== new_image) {
+                    if (item.imageCache !== new_image) {
                         deleteOldImageCache();
+                        deleteOldImageData();
+                        copyFile(new_image);
                         
-                    
                     }
                         
                     $('#edit-item-name').val(new_name);
@@ -402,7 +403,7 @@ function deleteList(){
         tx.executeSql(query1 + query2,[item.id],
             function(tx,result){
                     
-                    deleteOldImageCache();
+                    deleteOldimageUri();
                     $('#edit-item-page').dialog( "close" ); 
                     pageOnLoad();
                     alert('item deleted.');
@@ -416,17 +417,43 @@ function deleteList(){
 }
 
 
-
+/* delete image in cache file */
 function deleteOldImageCache(){
 
-var path = item.imageUrl;
+var path = item.imageCache;
 var fileName =  path.split("/").pop("cache"); //getting file name
-var standardPath = cordova.file.externalCacheDirectory;
+var cachePath = cordova.file.externalCacheDirectory;
+
+console.log(fileName);
+
+window.resolveLocalFileSystemURL(cachePath, function(dir) {
+  dir.getFile(fileName, {create:false}, function(fileEntry) {
+              fileEntry.remove(function(){
+                console.log('cache file deleted');
+                  
+              },function(error){
+                console.log('error of' + error.code);    
+                  
+              },function(){
+                console.log('no file exist');
+                 
+              });
+  });
+});
+
+}
+
+/* delete image in data file (hidden) */
+function deleteOldImageData(){
+
+var path = item.imageCache;
+var fileName =  path.split("/").pop("cache"); //getting file name
+var standardPath = cordova.file.dataDirectory;
 
 window.resolveLocalFileSystemURL(standardPath, function(dir) {
   dir.getFile(fileName, {create:false}, function(fileEntry) {
               fileEntry.remove(function(){
-                console.log('file deleted');
+                console.log('data file deleted');
                   
               },function(error){
                 console.log('error of' + error.code);    
@@ -442,26 +469,26 @@ window.resolveLocalFileSystemURL(standardPath, function(dir) {
 
 
 
-/* Move files after camera success */
-function moveFile() {
+/* Move files after add files */
+function copyFile(imagePath) {
 
-    var imagePath = item.new_image;
+    // var imagePath = item.imageUri;
     window.resolveLocalFileSystemURL(imagePath,function(fileEntry){
                 newFileUri  = cordova.file.dataDirectory;
                 oldFileUri  = imagePath;
-                newFileName = imagePath.split("/").pop("cache");
+                newFileName = imagePath.split("/").pop("cache") + ".jpg";
                 
                 window.resolveLocalFileSystemURL(newFileUri,
                         function(dirEntry) {
                             // move the file to a new directory and rename it
-                            fileEntry.moveTo(dirEntry, newFileName, successCallback, errorCallback);
+                            fileEntry.copyTo(dirEntry, newFileName, successCallback, errorCallback);
                         },
                         errorCallback);
           },
           errorCallback);
 
   function successCallback(entry) {
-    console.log("New Path: " + entry.fullPath);
+    console.log("Copied Path: " + entry.fullPath);
   }
 
   function errorCallback(error) {
