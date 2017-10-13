@@ -14,14 +14,16 @@
     <div data-role="header" data-theme="b"><a href="#" class="ui-btn ui-btn-left ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext" id="refresh-button">Refresh</a><a href="#add-item-page" data-icon="plus" class="ui-btn-right" data-rel="dialog">Add</a>
         <h1>My Inventory</h1>
     </div>
-    <div role="main" class="ui-content">
-    <ul data-role="listview" data-filter="true" data-filter-placeholder="Search items..." data-inset="true" class="item-list-view" id="item-list-view">
-        
+    <div role="main" class="ui-content" id="main-page-content">
+    <form class="ui-filterable">
+    <input id="filterBasic-input" data-type="search" placeholder="Search items..." >
+    </form>
     
-
-<!-- <ul data-role="listview" data-inset="true" class="item-list-view" id="item-list-view">
-</ul> -->
-</ul>
+    <ul data-role="listview" data-inset="true" class="item-list-view" id="item-list-view">
+    </ul>
+    <ul style="display: none" data-filter-reveal="true" data-role="listview" class="search-item-list-view" id="search-item-list-view" data-inset="true" data-input="#filterBasic-input">
+    </ul>
+<!-- <button class="ui-btn ui-shadow" id="load-more-button" onclick="loadMore()">Load more</button> -->
     </div>
     <div data-role="footer" data-position="fixed" data-theme="b">
         <h3>© MobileOne Technology</h3>

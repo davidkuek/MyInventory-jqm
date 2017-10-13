@@ -4,6 +4,7 @@ $( document ).on( "mobileinit", function() {
 pageOnLoad();
 
 
+$( document ).scroll(scrollEvent);
 $('#item-add-done').click(validateForm);
 $('#take-photo').click(openCamera);
 $('#item-image').click(enlargePicture);
@@ -27,14 +28,98 @@ var dbName = 'itemDB';
 var dbVersion = '1.0';
 var dbDisplayName = 'Test DB';
 var dbSize = 2*1024*1024;
+var global_item_array;
+var global_item_array_length = 0;
+
+
+
 
 function pageOnLoad(){
 fnDbInit();
-empty('#item-list-view');
+empty('#item-list-view');   
 resetAddItemForm();
 displayItemList();  
 
+
+
+
 }
+
+function loadingMessage(show,hide){
+$.mobile.loading( show, {
+  text: "Loading",
+  textVisible: true,
+  theme: "a",
+  html: ""
+});
+}
+
+function scrollEvent(){
+var active = $.mobile.activePage[0].id;
+var list_visible_length = $("#item-list-view li:visible").length;
+  if (active == "main-page") {
+    var windowHeight = $(window).height(); 
+    var scrollHeight = $(window).scrollTop(); 
+    var totalHeight = windowHeight; 
+        
+    if($(document).height() > $(window).height())
+    {
+        if($(window).scrollTop() == $(document).height() - $(window).height()){
+            loadingMessage("show");
+
+            loadItemList(list_visible_length,global_item_array);
+
+            setTimeout(function(){ 
+                loadingMessage("hide");
+            }, 2000);
+        }
+        }
+    }
+}
+
+function loadItemList(start_num,itemArray){
+    
+    var startnum = start_num; 
+    var end_num = start_num + 10; 
+    var arrayLength = itemArray.length; 
+
+    
+    if(arrayLength > end_num){
+        for(var i=start_num; i < end_num; i++){
+            append_item_list(   itemArray[i][0],
+                                itemArray[i][1],
+                                itemArray[i][2],
+                                itemArray[i][3],
+                                itemArray[i][4]
+                                );
+        }
+    }else{
+        for(var i=start_num; i < arrayLength; i++){
+            append_item_list(   itemArray[i][0],
+                                itemArray[i][1],
+                                itemArray[i][2],
+                                itemArray[i][3],
+                                itemArray[i][4]
+                                );
+        }       
+    }
+
+
+
+
+}
+
+function append_item_list(item0,item1,item2,item3,item4){
+     $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
+                            item0 + ")\"><a class=\"ui-btn ui-btn-icon-right ui-icon-carat-r item-list\"><img src=\"" + 
+                            item1 + "\" style=\"margin:5px\"><h2>" + 
+                            item2 + "</h2><p>" + 
+                            item3 + " " +
+                            item4 + "</p></a></li>");
+                    
+}
+
+
 
 /* check image change provided edit image dialog is pop up and enable update button */
 function checkImageChange(){
@@ -74,6 +159,10 @@ function enlargePicture(){
 }
 
 
+
+
+
+
 /* initialize database table */
 function fnDbInit() {
 
@@ -105,6 +194,8 @@ var add_item_query = 'INSERT INTO ITEM_LIST(name, quantity, uom, remark, image) 
     tx.executeSql(add_item_query,[new_name, new_quantity, new_uom, new_remark, new_image],
         function(tx,result){
             
+            loadingMessage("show");
+            setTimeout(function(){loadingMessage("hide")}, 2000);
             alert('Item saved!');
             console.log('item saved!');
             $('#add-item-page').dialog( "close" ); 
@@ -167,29 +258,65 @@ var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function (tx){
         tx.executeSql(query1 + query2,[],
-            function(tx,result){
-                if (result.rows.length == 0) {
+            function(tx,results){
+                if (results.rows.length > 0) {
                     
-                    console.log('No data on item list.');
                     
-                }
-                else{   
-                    for (var i = 0; i < result.rows.length; i++) {
-                        var item_id = result.rows.item(i).id;
-                        $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
-                            item_id + ")\"><a class=\"ui-btn ui-btn-icon-right ui-icon-carat-r item-list\"><img src=\"" + 
-                            result.rows.item(i).image + "\" style=\"margin:5px\"><h2>" + 
-                            result.rows.item(i).name + "</h2><p>" + 
-                            result.rows.item(i).quantity + " " +
-                            result.rows.item(i).desc + "</p></a></li>");
+                //     for (var i = 0 ; i < results.rows.length; i++) {
+                    
+                //     // var cont = 10;
+                //     var item_id = results.rows.item(i).id;
+                //         // item.length = result.rows.length;
+                        
+                //         $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
+                //             item_id + ")\"><a class=\"ui-btn ui-btn-icon-right ui-icon-carat-r item-list\"><img src=\"" + 
+                //             results.rows.item(i).image + "\" style=\"margin:5px\"><h2>" + 
+                //             results.rows.item(i).name + "</h2><p>" + 
+                //             results.rows.item(i).quantity + " " +
+                //             results.rows.item(i).desc + "</p></a></li>");
+                    
+                // }
+
+                // $("#main-page-content").append('<button class=\"ui-btn ui-shadow\" id=\"load-more-button\" onclick=\"loadMore()\">Load more</button>');
+                    
+                    var itemArray = [];
+                    
+
+                    for(var i=0; i < results.rows.length; i++){
+
+                        var item_id = results.rows.item(i).id;
+                        var item_image = results.rows.item(i).image;
+                        var item_name = results.rows.item(i).name;
+                        var item_qty = results.rows.item(i).quantity;
+                        var item_desc = results.rows.item(i).desc;
+
+                        itemArray[i] = [];
+                        
+
+                        itemArray[i][0] = item_id;
+                        itemArray[i][1] = item_image;
+                        itemArray[i][2] = item_name;
+                        itemArray[i][3] = item_qty;
+                        itemArray[i][4] = item_desc;
+
+                        
+                            
                     }
                     
-                }
+                    window.global_item_array = itemArray;
+                    window.global_item_array_length = itemArray.length;
+                    loadItemList(0, itemArray);
+            
+            }
+
+                
             },
             function(err){
                 console.log('display item list error ' + err);
             });
     });
+
+
 }
 
 
@@ -366,8 +493,8 @@ function updateList(){
             function(tx,result){
                     
                     if (item.imageCache !== new_image) {
-                        deleteOldImageCache();
-                        deleteOldImageData();
+                        deleteOldImageCache(item.imageCache);
+                        deleteOldImageData(item.imageCache);
                         copyFile(new_image);
                         
                     }
@@ -397,13 +524,15 @@ function updateList(){
 function deleteList(){
     var query1 = "DELETE FROM ITEM_LIST ";
     var query2 = "WHERE ID = ?";
+    var new_image = $('#edit-item-image').attr('src');
 
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function (tx){
         tx.executeSql(query1 + query2,[item.id],
             function(tx,result){
                     
-                    deleteOldimageUri();
+                    deleteOldImageCache(new_image);
+                    deleteOldImageData(new_image);
                     $('#edit-item-page').dialog( "close" ); 
                     pageOnLoad();
                     alert('item deleted.');
@@ -418,13 +547,11 @@ function deleteList(){
 
 
 /* delete image in cache file */
-function deleteOldImageCache(){
+function deleteOldImageCache(imagePath){
 
-var path = item.imageCache;
+var path = imagePath;
 var fileName =  path.split("/").pop("cache"); //getting file name
 var cachePath = cordova.file.externalCacheDirectory;
-
-console.log(fileName);
 
 window.resolveLocalFileSystemURL(cachePath, function(dir) {
   dir.getFile(fileName, {create:false}, function(fileEntry) {
@@ -444,9 +571,9 @@ window.resolveLocalFileSystemURL(cachePath, function(dir) {
 }
 
 /* delete image in data file (hidden) */
-function deleteOldImageData(){
+function deleteOldImageData(imagePath){
 
-var path = item.imageCache;
+var path = imagePath;
 var fileName =  path.split("/").pop("cache"); //getting file name
 var standardPath = cordova.file.dataDirectory;
 
@@ -494,5 +621,72 @@ function copyFile(imagePath) {
   function errorCallback(error) {
     console.log("Error:" + error.code);
   }   
+
+}
+
+
+
+
+function searchDataBase(){
+
+    var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.QUANTITY, ITEM_LIST.ID, ITEM_LIST.UOM, UOM.DESC FROM ITEM_LIST ";
+    var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
+    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
+    db.transaction(function (tx){
+        tx.executeSql(query1 + query2,[],
+            function(tx,result){
+                
+                        
+                        
+                    console.log('yep');
+               
+                
+                
+
+            },
+            function(err){
+                console.log('load item list error ' + err);
+            });
+    });
+
+}
+
+
+function search_item_list(){
+
+
+var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.quantity, UOM.DESC FROM ITEM_LIST ";
+var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
+    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
+    db.transaction(function (tx){
+        tx.executeSql(query1 + query2,[],
+            function(tx,results){
+                if (results.rows.length > 0) {
+                    
+      
+                    for (var i = 0 ; i < results.rows.length; i++) {
+                    
+                    // var cont = 10;
+                    var item_id = results.rows.item(i).id;
+                        // item.length = result.rows.length;
+                        
+                        $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
+                            item_id + ")\"><a class=\"ui-btn ui-btn-icon-right ui-icon-carat-r item-list\"><img src=\"" + 
+                            results.rows.item(i).image + "\" style=\"margin:5px\"><h2>" + 
+                            results.rows.item(i).name + "</h2><p>" + 
+                            results.rows.item(i).quantity + " " +
+                            results.rows.item(i).desc + "</p></a></li>");
+                    
+                }
+            }
+
+                
+            },
+            function(err){
+                console.log('search item list error ' + err);
+            });
+    });
+
+
 
 }
