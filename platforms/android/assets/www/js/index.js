@@ -1,13 +1,30 @@
 $( document ).on( "mobileinit", function() {
  
-
+fnDbInit(); 
 pageOnLoad();
+
+
+// $(document).on("click", ".ui-dialog-contain .ui-header a", closeButtonDialog);
+$( document ).scroll(scrollEvent);
+$('#item-add-done').click(validateForm);
+$('#item-add-cancel').click(closeButtonDialog);
+$('#take-photo').click(openCamera);
+$('#item-image').click(enlargePicture);
+$('#edit-item-image').click(enlargePicture);
+$('#choose-image').click(openFilePicker);
+// $('#refresh-button').click(refresh);
+$('#edit-item-name,#edit-item-qty,#edit-select-native-15,#edit-item-remark').on('input',enableUpdate);
+$('#edit-item-image').on('load', checkImageChange);
+$("#update-item-button").click(updateList);
+$("#delete-item-button").click(deleteList);
 
 
 
 
 
 });
+
+
 
 
 var item = {};
@@ -18,28 +35,28 @@ var dbDisplayName = 'Test DB';
 var dbSize = 2*1024*1024;
 var global_item_array;
 var global_item_array_length = 0;
+var imageDataPath;
 
 
 
 
 function pageOnLoad(){
-fnDbInit();
+
 empty('#item-list-view');   
 resetAddItemForm();
 displayItemList();  
-$( document ).scroll(scrollEvent);
-$('#item-add-done').click(validateForm);
-$('#take-photo').click(openCamera);
-$('#item-image').click(enlargePicture);
-$('#edit-item-image').click(enlargePicture);
-$('#choose-image').click(openFilePicker);
-$('#refresh-button').click(refresh);
-$('#edit-item-name,#edit-item-qty,#edit-select-native-15,#edit-item-remark').on('input',enableUpdate);
-$('#edit-item-image').on('load', checkImageChange);
-$("#update-item-button").click(updateList);
-$("#delete-item-button").click(deleteList);
 
 }
+
+
+function closeButtonDialog(){
+        if ($('#add-item-page').closest('.ui-dialog').is(':visible')) {
+        $( "#add-item-page" ).dialog( "close" );
+        resetAddItemForm();
+    }
+
+}
+
 
 function loadingMessage(show,hide){
 $.mobile.loading( show, {
@@ -49,7 +66,6 @@ $.mobile.loading( show, {
   html: ""
 });
 }
-
 
 
 function scrollEvent(){
@@ -172,16 +188,14 @@ function enlargePicture(){
 /* initialize database table */
 function fnDbInit() {
 
-  if (window.openDatabase) {
+ 
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function(tx) 
         {tx.executeSql("CREATE TABLE IF NOT EXISTS ITEM_LIST(id integer primary key autoincrement, name, quantity, uom, remark, image)")});
     db.transaction(function(tx) 
         {tx.executeSql("CREATE TABLE IF NOT EXISTS UOM(id integer primary key autoincrement, desc)")});
-  }
-  else{
-    console.log('error');
-  }
+
+    addUom();
   
 
 }
@@ -214,7 +228,7 @@ var add_item_query = 'INSERT INTO ITEM_LIST(name, quantity, uom, remark, image) 
   function(err){
     console.log(err);
   });   
-  displayUom(); // display UOM result, prevent adding data repeatitively
+  // displayUom(); // display UOM result, prevent adding data repeatitively
 }
 
 
@@ -226,10 +240,7 @@ db.transaction(function (tx) {
    tx.executeSql('INSERT INTO UOM (id, desc) VALUES (1, "Pack")');
    tx.executeSql('INSERT INTO UOM (id, desc) VALUES (2, "Bottle")');
    tx.executeSql('INSERT INTO UOM (id, desc) VALUES (3, "Piece")');
-   console.log("uom added.")
-},
-function(err){
-    console.log(err);
+   
 });
 }
 
@@ -266,24 +277,6 @@ var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
         tx.executeSql(query1 + query2,[],
             function(tx,results){
                 if (results.rows.length > 0) {
-                    
-                    
-                //     for (var i = 0 ; i < results.rows.length; i++) {
-                    
-                //     // var cont = 10;
-                //     var item_id = results.rows.item(i).id;
-                //         // item.length = result.rows.length;
-                        
-                //         $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
-                //             item_id + ")\"><a class=\"ui-btn ui-btn-icon-right ui-icon-carat-r item-list\"><img src=\"" + 
-                //             results.rows.item(i).image + "\" style=\"margin:5px\"><h2>" + 
-                //             results.rows.item(i).name + "</h2><p>" + 
-                //             results.rows.item(i).quantity + " " +
-                //             results.rows.item(i).desc + "</p></a></li>");
-                    
-                // }
-
-                // $("#main-page-content").append('<button class=\"ui-btn ui-shadow\" id=\"load-more-button\" onclick=\"loadMore()\">Load more</button>');
                     
                     var itemArray = [];
                     
@@ -368,7 +361,7 @@ function openCamera(selection) {
 
 function openFilePicker(selection) {
 
-    var srcType = Camera.PictureSourceType.PHOTOLIBRARY;
+    var srcType = Camera.PictureSourceType.SAVEDPHOTOALBUM;
     var options = setOptions(srcType);
 
     navigator.camera.getPicture(function cameraSuccess(imageUri) {
@@ -580,7 +573,7 @@ window.resolveLocalFileSystemURL(cachePath, function(dir) {
 function deleteOldImageData(imagePath){
 
 var path = imagePath;
-var fileName =  path.split("/").pop("cache"); //getting file name
+var fileName =  imageDataPath;
 var standardPath = cordova.file.dataDirectory;
 
 window.resolveLocalFileSystemURL(standardPath, function(dir) {
@@ -621,6 +614,7 @@ function copyFile(imagePath) {
           errorCallback);
 
   function successCallback(entry) {
+    window.imageDataPath = entry.fullPath;
     console.log("Copied Path: " + entry.fullPath);
   }
 
@@ -688,5 +682,5 @@ function reset_search(){
     var key = event.keyCode || event.charCode;
 
     if( key == 8 || key == 46 )
-        pageOnLoad();
+        refresh();
 }

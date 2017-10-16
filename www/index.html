@@ -10,14 +10,14 @@
 </head>
 
 <body>
-    <div data-role="page" id="main-page" data-title="Main_page" >
+    <div data-role="page" id="main-page" data-title="Main_page">
 
-    <div data-role="header" data-theme="b"><a href="#" class="ui-btn ui-btn-left ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext" id="refresh-button">Refresh</a><a href="#add-item-page" data-icon="plus" class="ui-btn-right" data-rel="dialog">Add</a>
+    <div data-role="header" data-theme="b"><!-- <a href="#" class="ui-btn ui-btn-left ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext" id="refresh-button">Refresh</a> --><a href="#add-item-page" data-icon="plus" class="ui-btn-right" data-rel="dialog">Add</a>
         <h1>My Inventory</h1>
     </div>
     <div role="main" class="ui-content" id="main-page-content">
     
-    <input type="text" id="search-input" onkeyup="search_item_list()" onkeydown="reset_search()" placeholder="Search for items..">
+    <input type="text" id="search-input" placeholder="Search for items..">
     
     
     <ul data-role="listview" data-inset="true" class="item-list-view" id="item-list-view">
@@ -75,6 +75,7 @@
 
     
 <a href="#" data-role="button" data-theme="b" id="item-add-done">Done</a>
+<a href="#" data-role="button" data-theme="b" id="item-add-cancel">Cancel</a>
     </div>
 
     </div>
