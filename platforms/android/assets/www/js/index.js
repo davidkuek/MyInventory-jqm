@@ -4,18 +4,6 @@ $( document ).on( "mobileinit", function() {
 pageOnLoad();
 
 
-$( document ).scroll(scrollEvent);
-$('#item-add-done').click(validateForm);
-$('#take-photo').click(openCamera);
-$('#item-image').click(enlargePicture);
-$('#edit-item-image').click(enlargePicture);
-$('#choose-image').click(openFilePicker);
-$('#refresh-button').click(refresh);
-$('#edit-item-name,#edit-item-qty,#edit-select-native-15,#edit-item-remark').on('input',enableUpdate);
-$('#edit-item-image').on('load', checkImageChange);
-$("#update-item-button").click(updateList);
-$("#delete-item-button").click(deleteList);
-
 
 
 
@@ -39,9 +27,17 @@ fnDbInit();
 empty('#item-list-view');   
 resetAddItemForm();
 displayItemList();  
-
-
-
+$( document ).scroll(scrollEvent);
+$('#item-add-done').click(validateForm);
+$('#take-photo').click(openCamera);
+$('#item-image').click(enlargePicture);
+$('#edit-item-image').click(enlargePicture);
+$('#choose-image').click(openFilePicker);
+$('#refresh-button').click(refresh);
+$('#edit-item-name,#edit-item-qty,#edit-select-native-15,#edit-item-remark').on('input',enableUpdate);
+$('#edit-item-image').on('load', checkImageChange);
+$("#update-item-button").click(updateList);
+$("#delete-item-button").click(deleteList);
 
 }
 
@@ -54,6 +50,8 @@ $.mobile.loading( show, {
 });
 }
 
+
+
 function scrollEvent(){
 var active = $.mobile.activePage[0].id;
 var list_visible_length = $("#item-list-view li:visible").length;
@@ -62,17 +60,25 @@ var list_visible_length = $("#item-list-view li:visible").length;
     var scrollHeight = $(window).scrollTop(); 
     var totalHeight = windowHeight; 
         
-    if($(document).height() > $(window).height())
-    {
-        if($(window).scrollTop() == $(document).height() - $(window).height()){
-            loadingMessage("show");
+        if($(document).height() > $(window).height())
+        {
+            if($(window).scrollTop() == $(document).height() - $(window).height()){
 
-            loadItemList(list_visible_length,global_item_array);
+                if (list_visible_length == global_item_array_length) {
 
-            setTimeout(function(){ 
-                loadingMessage("hide");
-            }, 2000);
-        }
+                    return;
+                }
+
+                else{
+                loadingMessage("show");
+
+                loadItemList(list_visible_length,global_item_array);
+
+                    setTimeout(function(){ 
+                    loadingMessage("hide");
+                    }, 2000);
+                }
+            }
         }
     }
 }
@@ -80,7 +86,7 @@ var list_visible_length = $("#item-list-view li:visible").length;
 function loadItemList(start_num,itemArray){
     
     var startnum = start_num; 
-    var end_num = start_num + 7; 
+    var end_num = start_num + 10; 
     var arrayLength = itemArray.length; 
 
     
@@ -626,58 +632,45 @@ function copyFile(imagePath) {
 
 
 
-
-function searchDataBase(){
-
-    var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.QUANTITY, ITEM_LIST.ID, ITEM_LIST.UOM, UOM.DESC FROM ITEM_LIST ";
-    var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
-    db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
-    db.transaction(function (tx){
-        tx.executeSql(query1 + query2,[],
-            function(tx,result){
-                
-                        
-                        
-                    console.log('yep');
-               
-                
-                
-
-            },
-            function(err){
-                console.log('load item list error ' + err);
-            });
-    });
-
-}
-
-
 function search_item_list(){
 
 
-var query1 = "SELECT ITEM_LIST.NAME, ITEM_LIST.quantity, UOM.DESC FROM ITEM_LIST ";
+  var input, filter, ul, li;
+
+    input = $('#search-input').val();
+    filter = input.toLowerCase();
+    // ul = $('#item-list-view');
+    // li = $('#item-list-view li');
+
+var query1 = "SELECT ITEM_LIST.ID, ITEM_LIST.IMAGE,ITEM_LIST.NAME, ITEM_LIST.quantity, UOM.DESC FROM ITEM_LIST ";
 var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
     db = openDatabase(dbName, dbVersion, dbDisplayName, dbSize);
     db.transaction(function (tx){
         tx.executeSql(query1 + query2,[],
             function(tx,results){
                 if (results.rows.length > 0) {
-                    
-      
+
+                    empty('#item-list-view');   
+
                     for (var i = 0 ; i < results.rows.length; i++) {
-                    
-                    // var cont = 10;
-                    var item_id = results.rows.item(i).id;
-                        // item.length = result.rows.length;
+                        var item_name = results.rows.item(i).name;
+                        var item_id = results.rows.item(i).id;
+                        var item_image = results.rows.item(i).image;
+                        var item_quantity = results.rows.item(i).quantity;
+                        var item_desc = results.rows.item(i).desc;
                         
-                        $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
+
+                        if (item_name.toLowerCase().indexOf(filter) > -1) {
+                            $("#item-list-view").append("<li class=\"ui-li-has-thumb ui-first-child item-list-display\" onclick = \"loadItemDetails(" +
                             item_id + ")\"><a class=\"ui-btn ui-btn-icon-right ui-icon-carat-r item-list\"><img src=\"" + 
-                            results.rows.item(i).image + "\" style=\"margin:5px\"><h2>" + 
-                            results.rows.item(i).name + "</h2><p>" + 
-                            results.rows.item(i).quantity + " " +
-                            results.rows.item(i).desc + "</p></a></li>");
-                    
-                }
+                            item_image + "\" style=\"margin:5px\"><h2>" + 
+                            item_name + "</h2><p>" + 
+                            item_quantity + " " +
+                            item_desc + "</p></a></li>");  
+                        }
+   
+                    }
+
             }
 
                 
@@ -689,4 +682,11 @@ var query2 = "INNER JOIN UOM ON UOM.ID=ITEM_LIST.UOM";
 
 
 
+}
+
+function reset_search(){
+    var key = event.keyCode || event.charCode;
+
+    if( key == 8 || key == 46 )
+        pageOnLoad();
 }

@@ -3,6 +3,7 @@
 <head>
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/index.css"/>
     <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css"/>
 
     
@@ -15,13 +16,13 @@
         <h1>My Inventory</h1>
     </div>
     <div role="main" class="ui-content" id="main-page-content">
-    <form class="ui-filterable">
-    <input id="filterBasic-input" data-type="search" placeholder="Search items..." >
-    </form>
+    
+    <input type="text" id="search-input" onkeyup="search_item_list()" onkeydown="reset_search()" placeholder="Search for items..">
+    
     
     <ul data-role="listview" data-inset="true" class="item-list-view" id="item-list-view">
     </ul>
-    <ul style="display: none" data-filter-reveal="true" data-role="listview" class="search-item-list-view" id="search-item-list-view" data-inset="true" data-input="#filterBasic-input">
+    
     </ul>
 <!-- <button class="ui-btn ui-shadow" id="load-more-button" onclick="loadMore()">Load more</button> -->
     </div>
@@ -141,7 +142,7 @@
 <div data-role="page" data-title="Main_page" id="item-image-dialogue" data-overlay-theme="c">
 
     <div data-role="header">
-        <h1>Path</h1>
+        <h1>Item image</h1>
     </div>
     <div role="main" class="ui-content">
         <img style="width: 100%" id="item-large-image">
