@@ -1,1 +1,2 @@
-# add item list work
+# My inventory JQM
+An inventory list in JQM
